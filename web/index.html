@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информация о заказе</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #f4f4f9; }
+        h1 { text-align: center; color: #333; }
+        .search-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        #orderIdInput { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        #fetchOrderBtn { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #fetchOrderBtn:hover { background-color: #0056b3; }
+        #result { background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #result h2 { margin-top: 0; }
+        pre { background-color: #eee; padding: 15px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
+        .error { color: #d93025; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Поиск информации о заказе</h1>
+    <div class="search-container">
+        <input type="text" id="orderIdInput" placeholder="Введите ID заказа (например, b563feb7b2b84b6test)">
+        <button id="fetchOrderBtn">Найти</button>
+    </div>
+    <div id="result">
+        <p>Введите ID заказа и нажмите "Найти", чтобы получить информацию.</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
