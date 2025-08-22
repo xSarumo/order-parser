@@ -42,3 +42,13 @@ func (targ *OrderService) GetOrder(uid string) (model.Order, error) {
 	}
 	return model.Order{}, err
 }
+
+func (targ *OrderService) ProcessNewOrder(order model.Order) {
+	err := targ.repo.SaveOrder(&order)
+	if err != nil {
+		log.Printf("Failed to save order %s: %v", order.OrderUID, err)
+		return
+	}
+	targ.cache.Set(order)
+	log.Printf("Order %s processed and cached", order.OrderUID)
+}
