@@ -47,9 +47,5 @@ services:
       - kafka
     restart: on-failure
 
-
-
-  
-
 volumes:
   pgdb:

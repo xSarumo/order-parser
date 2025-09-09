@@ -6,11 +6,12 @@ import (
 	"errors"
 	"log"
 	"sync"
+	"test-task/internal/config"
 	"test-task/internal/model"
 	"test-task/internal/repository"
 )
 
-const CACHE_LIMIT int = 100
+var CACHE_LIMIT int = config.CacheLimit()
 
 var ErrNotFound = errors.New("cache: item not found")
 
@@ -72,7 +73,8 @@ func (targ *LRU_Cache) LoadFromDB(orders []model.Order) {
 
 func InitCache(db *sql.DB) *LRU_Cache {
 	cache := NewCache()
-	orders, err := repository.NewOrderRepository(db).GetLastNOrders(CACHE_LIMIT)
+	limit := config.CacheLimit()
+	orders, err := repository.NewOrderRepository(db).GetLastNOrders(limit)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}

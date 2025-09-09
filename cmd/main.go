@@ -2,17 +2,20 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"test-task/internal/cache"
+	"test-task/internal/config"
 	"test-task/internal/db"
 	"test-task/internal/handlers"
 	"test-task/internal/kafka"
 	"test-task/internal/repository"
 	"test-task/internal/service"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -41,8 +44,8 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedOrigins:   config.CORSAllowedOrigins(),
+		AllowedMethods:   []string{"GET"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
@@ -52,13 +55,18 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Get("/order/{order_uid}", orderHandler.GetOrder)
 
-	fs := http.FileServer(http.Dir("./web"))
+	fs := http.FileServer(http.Dir(config.StaticDir()))
 	r.Handle("/*", fs)
 
-	log.Println("Service started on :8081")
+	srv := &http.Server{
+		Addr:    config.HTTPAddr(),
+		Handler: r,
+	}
+
 	go func() {
-		if err := http.ListenAndServe(":8081", r); err != nil {
-			log.Fatalf("Failed to start server: %v", err)
+		log.Println("Service started on", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("could not listen on %s: %v\n", srv.Addr, err)
 		}
 	}()
 
@@ -66,5 +74,15 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutting down server...")
+
 	cancel()
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+
+	log.Println("Server exited properly")
 }

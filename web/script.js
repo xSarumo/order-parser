@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             
-            const response = await fetch(`http://localhost:8081/order/${orderId}`);
+            const response = await fetch(`/order/${orderId}`);
 
             if (response.status === 404) {
                  resultDiv.innerHTML = `<p class="error">Заказ с ID <strong>${orderId}</strong> не найден.</p>`;

@@ -4,16 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"test-task/internal/config"
 	"test-task/internal/model"
 	"test-task/internal/service"
 
 	"github.com/segmentio/kafka-go"
-)
-
-const (
-	topic   = "orders"
-	broker  = "kafka:29092"
-	groupID = "order-group"
 )
 
 type KafkaSubscriber struct {
@@ -22,6 +17,9 @@ type KafkaSubscriber struct {
 }
 
 func NewKafkaSubscriber(service *service.OrderService) *KafkaSubscriber {
+	broker := config.KafkaBroker()
+	topic := config.KafkaTopic()
+	groupID := config.KafkaGroupID()
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{broker},
 		GroupID: groupID,
@@ -35,7 +33,7 @@ func NewKafkaSubscriber(service *service.OrderService) *KafkaSubscriber {
 }
 
 func (ks *KafkaSubscriber) Subscribe(ctx context.Context) {
-	log.Println("Subscribed to Kafka topic:", topic)
+	log.Println("Subscribed to Kafka topic:", config.KafkaTopic())
 	for {
 		select {
 		case <-ctx.Done():
@@ -51,7 +49,6 @@ func (ks *KafkaSubscriber) Subscribe(ctx context.Context) {
 			var order model.Order
 			if err := json.Unmarshal(m.Value, &order); err != nil {
 				log.Printf("Failed to unmarshal order: %v", err)
-				// Сообщение не будет закоммичено и может быть обработано снова
 				continue
 			}
 

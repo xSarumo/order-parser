@@ -1,0 +1,23 @@
+{
+  "http": {
+    "addr": ":8081",
+    "staticDir": "./web",
+    "corsAllowedOrigins": ["*"]
+  },
+  "kafka": {
+    "broker": "kafka:29092",
+    "topic": "orders",
+    "groupID": "order-group"
+  },
+  "cache": {
+    "limit": 100
+  },
+  "publisher": {
+    "broker": "localhost:9092",
+    "topic": "orders",
+    "count": 4
+  },
+  "db": {
+    "dsn": ""
+  }
+}
