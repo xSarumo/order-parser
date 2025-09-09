@@ -3,47 +3,56 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"log"
+	"test-task/internal/config"
+	"test-task/internal/model"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/segmentio/kafka-go"
 )
 
-const (
-	topic  = "orders"
-	broker = "localhost:9092"
-)
+// topic, broker are configurable via env in config package
 
 func main() {
-	// Чтение модели из файла
-	data, err := ioutil.ReadFile("model.json")
-	if err != nil {
-		log.Fatalf("Failed to read model file: %v", err)
-	}
+	cntFakeData := config.PublisherCount()
+	topic := config.PublisherTopic()
+	broker := config.PublisherBroker()
 
-	// Проверка валидности JSON
-	if !json.Valid(data) {
-		log.Fatalf("model.json contains invalid JSON")
-	}
-
-	// Настройка писателя Kafka
 	w := &kafka.Writer{
 		Addr:     kafka.TCP(broker),
 		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
 	}
 
-	defer w.Close()
+	for i := 0; i < cntFakeData; i++ {
+		var fake model.Order
+		errF := gofakeit.Struct(&fake)
+		if errF != nil {
+			log.Fatal(errF)
+		}
 
-	// Отправка сообщения
-	err = w.WriteMessages(context.Background(),
-		kafka.Message{
-			Value: data,
-		},
-	)
-	if err != nil {
-		log.Fatalf("failed to write messages: %v", err)
+		data, err := json.Marshal(&fake)
+		if err != nil {
+			log.Fatalf("Failed to marshal fake order to JSON: %v", err)
+		}
+
+		if !json.Valid(data) {
+			log.Fatalf("model.json contains invalid JSON")
+		}
+		fmt.Println(fake.OrderUID)
+
+		err = w.WriteMessages(context.Background(),
+			kafka.Message{
+				Value: data,
+			},
+		)
+		if err != nil {
+			log.Fatalf("failed to write messages: %v", err)
+		}
 	}
+
+	defer w.Close()
 
 	log.Println("Message published to Kafka successfully!")
 }

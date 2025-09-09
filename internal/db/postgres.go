@@ -3,17 +3,13 @@ package db
 import (
 	"database/sql"
 	"log"
-	"os"
+	"test-task/internal/config"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func InitDB() *sql.DB {
-	dsn := os.Getenv("DB_URL")
-	if dsn == "" {
-		log.Println("postgres db: Use default settings")
-		dsn = "postgres://myadmin:mypassword@pgdb:5432/mydatabase"
-	}
+	dsn := config.DBDSN()
 
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
